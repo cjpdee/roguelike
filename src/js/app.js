@@ -1,29 +1,39 @@
-// import './world/generateLevel';
+// import './world/generateRoom';
 import * as c from "./util/constants";
 
 import {
-	currentLevel,
+	currentRoom,
 	insertPlayerToSpace,
 	movePlayer
-} from './world/generateLevel';
-import Entity from "./entity/Entity";
+} from './world/generateRoom';
+import {
+	createLevelShell
+} from "./world/generateLevel";
 import Player from "./entity/Player";
 
 var player = new Player();
 
-
-
 export function draw() {
 	var screen = document.getElementById('game');
 	screen.innerHTML = '';
-	currentLevel.forEach((row) => {
+
+	currentRoom.forEach((row, index) => {
+		// I'm worried this loop is terribly inefficient / unnecessary
+		var renderRow = [];
+		row.forEach((cell, jndex) => {
+			if (typeof cell == 'object') {
+				renderRow.push(cell.sprite)
+			} else renderRow.push(cell);
+		})
+
 		var div = document.createElement('p');
-		div.innerHTML = row.toString().replace(/,/g, '');
+		div.innerHTML = renderRow.toString().replace(/,/g, '');
 		screen.appendChild(div);
 	});
+	// console.log('not mut', currentRoom)
 }
 
-
+// TODO: change to inputHandler() in new file
 function initEvtListeners() {
 	document.addEventListener('keydown', (e) => {
 		e.key == 'w' && player.move(c.NORTH);
@@ -49,6 +59,7 @@ player.insertHere(2, 1)
 person.insertHere(4, 4)
 draw()
 
+// console.log(createLevelShell())
 
 // var man = new Entity();
 

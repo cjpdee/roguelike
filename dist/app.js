@@ -97,10 +97,12 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "draw", function() { return draw; });
 /* harmony import */ var _util_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util/constants */ "./src/js/util/constants.js");
-/* harmony import */ var _world_generateLevel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./world/generateLevel */ "./src/js/world/generateLevel.js");
-/* harmony import */ var _entity_Entity__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./entity/Entity */ "./src/js/entity/Entity.js");
+/* harmony import */ var _world_generateRoom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./world/generateRoom */ "./src/js/world/generateRoom.js");
+/* harmony import */ var _world_generateLevel__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./world/generateLevel */ "./src/js/world/generateLevel.js");
 /* harmony import */ var _entity_Player__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./entity/Player */ "./src/js/entity/Player.js");
-// import './world/generateLevel';
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+// import './world/generateRoom';
 
 
 
@@ -109,12 +111,19 @@ var player = new _entity_Player__WEBPACK_IMPORTED_MODULE_3__["default"]();
 function draw() {
   var screen = document.getElementById('game');
   screen.innerHTML = '';
-  _world_generateLevel__WEBPACK_IMPORTED_MODULE_1__["currentLevel"].forEach(function (row) {
+  _world_generateRoom__WEBPACK_IMPORTED_MODULE_1__["currentRoom"].forEach(function (row, index) {
+    // I'm worried this loop is terribly inefficient / unnecessary
+    var renderRow = [];
+    row.forEach(function (cell, jndex) {
+      if (_typeof(cell) == 'object') {
+        renderRow.push(cell.sprite);
+      } else renderRow.push(cell);
+    });
     var div = document.createElement('p');
-    div.innerHTML = row.toString().replace(/,/g, '');
+    div.innerHTML = renderRow.toString().replace(/,/g, '');
     screen.appendChild(div);
-  });
-}
+  }); // console.log('not mut', currentRoom)
+} // TODO: change to inputHandler() in new file
 
 function initEvtListeners() {
   document.addEventListener('keydown', function (e) {
@@ -137,7 +146,8 @@ var person = new _entity_Player__WEBPACK_IMPORTED_MODULE_3__["default"]('👿');
 console.log(person);
 player.insertHere(2, 1);
 person.insertHere(4, 4);
-draw(); // var man = new Entity();
+draw(); // console.log(createLevelShell())
+// var man = new Entity();
 // console.log(man)
 
 /***/ }),
@@ -146,15 +156,14 @@ draw(); // var man = new Entity();
 /*!*********************************!*\
   !*** ./src/js/entity/Entity.js ***!
   \*********************************/
-/*! exports provided: default, movePlayer, moveEntity */
+/*! exports provided: default, movePlayer */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Entity; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "movePlayer", function() { return movePlayer; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "moveEntity", function() { return moveEntity; });
-/* harmony import */ var _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../world/generateLevel */ "./src/js/world/generateLevel.js");
+/* harmony import */ var _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../world/generateRoom */ "./src/js/world/generateRoom.js");
 /* harmony import */ var _util_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util/constants */ "./src/js/util/constants.js");
 /* harmony import */ var _app_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../app.js */ "./src/js/app.js");
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -178,14 +187,25 @@ function () {
     this.sprite = '😍';
     this.posX = 1;
     this.posY = 1;
-  }
+    this.viewDistance = 10;
+  } // Return things
+
 
   _createClass(Entity, [{
+    key: "adjTile",
+    value: function adjTile(direction) {
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["NORTH"]) return _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["currentRoom"][this.posX - 1][this.posY];
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]) return _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["currentRoom"][this.posX + 1][this.posY];
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["WEST"]) return _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["currentRoom"][this.posX][this.posY - 1];
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["EAST"]) return _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["currentRoom"][this.posX][this.posY + 1];
+    } // Do things
+
+  }, {
     key: "insertHere",
-    value: function insertHere(posX, posY) {
-      _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["currentLevel"][posX][posY] = this.sprite;
-      this.posX = posX;
-      this.posY = posY;
+    value: function insertHere(x, y) {
+      _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["currentRoom"][x][y] = this;
+      this.posX = x;
+      this.posY = y;
     }
   }, {
     key: "reInsert",
@@ -200,11 +220,11 @@ function () {
   }, {
     key: "move",
     value: function move(direction) {
-      Object(_world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["resetTile"])(this.posX, this.posY);
-      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["NORTH"] && _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["currentLevel"][this.posX - 1][this.posY] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) this.posX--;
-      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["SOUTH"] && _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["currentLevel"][this.posX + 1][this.posY] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) this.posX++;
-      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["WEST"] && _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["currentLevel"][this.posX][this.posY - 1] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) this.posY--;
-      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["EAST"] && _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["currentLevel"][this.posX][this.posY + 1] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) this.posY++;
+      Object(_world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["resetTile"])(this.posX, this.posY);
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["NORTH"] && Object(_world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["isTileWalkable"])(this.adjTile(_util_constants__WEBPACK_IMPORTED_MODULE_1__["NORTH"]))) this.posX--;
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["SOUTH"] && Object(_world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["isTileWalkable"])(this.adjTile(_util_constants__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]))) this.posX++;
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["WEST"] && Object(_world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["isTileWalkable"])(this.adjTile(_util_constants__WEBPACK_IMPORTED_MODULE_1__["WEST"]))) this.posY--;
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["EAST"] && Object(_world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["isTileWalkable"])(this.adjTile(_util_constants__WEBPACK_IMPORTED_MODULE_1__["EAST"]))) this.posY++;
       this.reInsert();
       Object(_app_js__WEBPACK_IMPORTED_MODULE_2__["draw"])();
     }
@@ -221,15 +241,13 @@ function () {
 
 
 function movePlayer(direction) {
-  Object(_world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["resetTile"])(playerPos[0], playerPos[1]);
-  if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["NORTH"] && _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["currentLevel"][playerPos[0] - 1][playerPos[1]] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[0]--;
-  if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["SOUTH"] && _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["currentLevel"][playerPos[0] + 1][playerPos[1]] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[0]++;
-  if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["WEST"] && _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["currentLevel"][playerPos[0]][playerPos[1] - 1] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[1]--;
-  if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["EAST"] && _world_generateLevel__WEBPACK_IMPORTED_MODULE_0__["currentLevel"][playerPos[0]][playerPos[1] + 1] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[1]++;
+  Object(_world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["resetTile"])(playerPos[0], playerPos[1]);
+  if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["NORTH"] && _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["currentRoom"][playerPos[0] - 1][playerPos[1]] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[0]--;
+  if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["SOUTH"] && _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["currentRoom"][playerPos[0] + 1][playerPos[1]] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[0]++;
+  if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["WEST"] && _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["currentRoom"][playerPos[0]][playerPos[1] - 1] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[1]--;
+  if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_1__["EAST"] && _world_generateRoom__WEBPACK_IMPORTED_MODULE_0__["currentRoom"][playerPos[0]][playerPos[1] + 1] != _util_constants__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[1]++;
   insertPlayer();
   Object(_app_js__WEBPACK_IMPORTED_MODULE_2__["draw"])();
-}
-function moveEntity(entityId, currentPosX, currentPosY, direction) {// findEntity()
 }
 
 /***/ }),
@@ -329,14 +347,111 @@ function randomInt(min, max) {
 /*!***************************************!*\
   !*** ./src/js/world/generateLevel.js ***!
   \***************************************/
-/*! exports provided: currentLevel, insertPlayerToSpace, resetTile, movePlayer, moveEntity */
+/*! exports provided: createLevelShell */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "currentLevel", function() { return currentLevel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createLevelShell", function() { return createLevelShell; });
+/* harmony import */ var _generateRoom__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./generateRoom */ "./src/js/world/generateRoom.js");
+/* harmony import */ var _util_helper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util/helper */ "./src/js/util/helper.js");
+
+ // room.currentRoom;
+
+var LEVEL_SIZE = 24;
+function createLevelShell() {
+  var row = function row() {
+    return Array(LEVEL_SIZE).fill(null);
+  };
+
+  var level = [];
+
+  for (var i = 0; i < LEVEL_SIZE; i++) {
+    level.push(row());
+  }
+
+  return level;
+}
+
+function placeFirstRoom(level) {
+  var x = Object(_util_helper__WEBPACK_IMPORTED_MODULE_1__["randomInt"])(0, LEVEL_SIZE);
+  var y = Object(_util_helper__WEBPACK_IMPORTED_MODULE_1__["randomInt"])(0, LEVEL_SIZE);
+  console.log('new room location:', x, y);
+  var room = _generateRoom__WEBPACK_IMPORTED_MODULE_0__["createRoom"](); // check if x is valid
+  // if (x + room[0].length > LEVEL_SIZE) {
+  // 	console.log('wtf have you done');
+  // 	room = r.createRoom()
+  // }
+
+  if (roomFits(level, room, x, y)) {
+    spliceRoomIntoLevel(level, room, x, y);
+  } // check if y is valid
+
+}
+
+function roomFits(level, room, x, y) {
+  // X axis fits?
+  if (x + room[0].length > LEVEL_SIZE) {
+    console.log('wtf have you done');
+    console.log(x, room[0].length);
+    return false;
+  } // Y axis fits?
+
+
+  if (y + room.length > LEVEL_SIZE) {
+    console.log('wtf have you done');
+    console.log(y, room.length);
+    return false;
+  }
+
+  return true;
+}
+
+function spliceRoomIntoLevel(level, room, x, y) {
+  var _loop = function _loop(i) {
+    console.log(room[i]);
+    room.forEach(function (row, index) {
+      var jndex = 0;
+
+      for (var j = x; j < x + room[0].length; j++) {
+        level[i][j] = room[index][jndex];
+        console.log(i, j, index, jndex);
+        jndex++; // room[index].forEach((cell, jndex) => {
+        // 	level[i][j] = cell
+        // 	// console.log(level[i][j])
+        // })
+      }
+    });
+  };
+
+  for (var i = y; i < y + room.length; i++) {
+    _loop(i);
+  }
+
+  console.log('ere', level);
+} ////////
+
+
+var level = createLevelShell();
+placeFirstRoom(level);
+
+/***/ }),
+
+/***/ "./src/js/world/generateRoom.js":
+/*!**************************************!*\
+  !*** ./src/js/world/generateRoom.js ***!
+  \**************************************/
+/*! exports provided: currentRoom, createRoom, insertPlayerToSpace, resetTile, whatIsTile, isTileWalkable, movePlayer, moveEntity */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "currentRoom", function() { return currentRoom; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createRoom", function() { return createRoom; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "insertPlayerToSpace", function() { return insertPlayerToSpace; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resetTile", function() { return resetTile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "whatIsTile", function() { return whatIsTile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isTileWalkable", function() { return isTileWalkable; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "movePlayer", function() { return movePlayer; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "moveEntity", function() { return moveEntity; });
 /* harmony import */ var _util_helper_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util/helper.js */ "./src/js/util/helper.js");
@@ -345,20 +460,25 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var DEFAULT_MAX_LEVEL_SIZE = 30;
-var DEFAULT_MIN_LEVEL_SIZE = 4;
+var DEFAULT_MAX_ROOM_SIZE = 8;
+var DEFAULT_MIN_ROOM_SIZE = 5;
 var DEFAULT_EXIT_SIZE = 2;
+var WALL_TILES = ['🌳'];
+var PATH_TILES = ['󠀠󠀠󠀠󠀠🌱'];
 var playerPos = [1, 1];
-var currentLevel = insertExit(insertExit(insertExit(insertExit(generateRandomLevel(), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"]);
+var currentRoom = insertExit(insertExit(insertExit(insertExit(generateRandomRoom(), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"]);
+var createRoom = function createRoom() {
+  return insertExit(insertExit(insertExit(insertExit(generateRandomRoom(), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"]);
+};
 /**
- * LEVEL GENERATION
+ * ROOM GENERATION
  */
 
-function randomLevelSize() {
-  return Object(_util_helper_js__WEBPACK_IMPORTED_MODULE_0__["randomInt"])(DEFAULT_MIN_LEVEL_SIZE, DEFAULT_MAX_LEVEL_SIZE);
+function randomRoomSize() {
+  return Object(_util_helper_js__WEBPACK_IMPORTED_MODULE_0__["randomInt"])(DEFAULT_MIN_ROOM_SIZE, DEFAULT_MAX_ROOM_SIZE);
 }
 
-function levelShell(w, h) {
+function roomShell(w, h) {
   var shell = [];
   var row = [];
 
@@ -382,20 +502,20 @@ function levelShell(w, h) {
   return shell;
 }
 
-function insertExitXAxis(level, rowIndex) {
-  var borderRange = level[rowIndex].length - 1;
+function insertExitXAxis(room, rowIndex) {
+  var borderRange = room[rowIndex].length - 1;
   var where = Object(_util_helper_js__WEBPACK_IMPORTED_MODULE_0__["randomInt"])(1, borderRange - DEFAULT_EXIT_SIZE);
-  level[rowIndex].splice(where, DEFAULT_EXIT_SIZE, _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["pathTile"], _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["pathTile"]);
-  return level;
+  room[rowIndex].splice(where, DEFAULT_EXIT_SIZE, _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["pathTile"], _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["pathTile"]);
+  return room;
 }
 
-function insertExitYAxis(level, colIndex) {
-  var borderRange = level.length - 1;
+function insertExitYAxis(room, colIndex) {
+  var borderRange = room.length - 1;
   var where = Object(_util_helper_js__WEBPACK_IMPORTED_MODULE_0__["randomInt"])(1, borderRange - DEFAULT_EXIT_SIZE);
 
   function createRowWithExit(exitIndex) {
     var row = [];
-    var w = level[0].length;
+    var w = room[0].length;
 
     for (var i = 0; i < w; i++) {
       if (i == exitIndex) {
@@ -408,28 +528,28 @@ function insertExitYAxis(level, colIndex) {
     return row;
   }
 
-  level.splice(where, DEFAULT_EXIT_SIZE, createRowWithExit(colIndex), createRowWithExit(colIndex));
-  return level;
+  room.splice(where, DEFAULT_EXIT_SIZE, createRowWithExit(colIndex), createRowWithExit(colIndex));
+  return room;
 }
 
-function insertExit(level, direction) {
+function insertExit(room, direction) {
   if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"]) {
-    return insertExitXAxis(level, 0);
+    return insertExitXAxis(room, 0);
   } else if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]) {
-    return insertExitXAxis(level, level.length - 1);
+    return insertExitXAxis(room, room.length - 1);
   } else if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"]) {
-    return insertExitYAxis(level, level[0].length - 1);
+    return insertExitYAxis(room, room[0].length - 1);
   } else if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"]) {
-    return insertExitYAxis(level, 0);
+    return insertExitYAxis(room, 0);
   }
 }
 
-function generateRandomLevel() {
-  var shell = levelShell(randomLevelSize(), randomLevelSize());
+function generateRandomRoom() {
+  var shell = roomShell(randomRoomSize(), randomRoomSize());
   return shell;
 }
 
-function buildLevel() {}
+function buildRoom() {}
 /*
 	Parameters:
 	an array of directions where there can be exits
@@ -444,7 +564,7 @@ function buildLevel() {}
 
 function insertPlayerFirstAvailableSpace() {
   var pos = [];
-  currentLevel.find(function (row, index1) {
+  currentRoom.find(function (row, index1) {
     if (row.find(function (space, index2) {
       if (space === _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["pathTile"] && pos.length < 2) {
         pos.push(index1);
@@ -453,11 +573,11 @@ function insertPlayerFirstAvailableSpace() {
       }
     })) return;
   });
-  currentLevel[pos[0]][pos[1]] = _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["player"];
+  currentRoom[pos[0]][pos[1]] = _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["player"];
 }
 
 function insertPlayerToSpace(x, y) {
-  currentLevel[x][y] = _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["player"];
+  currentRoom[x][y] = _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["player"];
 }
 
 function insertPlayer() {
@@ -465,11 +585,17 @@ function insertPlayer() {
 }
 
 function resetTile(x, y) {
-  currentLevel[x][y] = _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["pathTile"];
+  currentRoom[x][y] = _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["pathTile"];
+}
+function whatIsTile(x, y) {
+  return currentRoom[x][y];
+}
+function isTileWalkable(tile) {
+  return PATH_TILES.includes(tile) ? true : false;
 }
 
 function getPlayerPos() {
-  currentLevel.find(function (row) {
+  currentRoom.find(function (row) {
     return row.find(function (space) {
       return space == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["player"];
     });
@@ -478,20 +604,14 @@ function getPlayerPos() {
 
 function movePlayer(direction) {
   resetTile(playerPos[0], playerPos[1]);
-  if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"] && currentLevel[playerPos[0] - 1][playerPos[1]] != _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[0]--;
-  if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"] && currentLevel[playerPos[0] + 1][playerPos[1]] != _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[0]++;
-  if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"] && currentLevel[playerPos[0]][playerPos[1] - 1] != _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[1]--;
-  if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"] && currentLevel[playerPos[0]][playerPos[1] + 1] != _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[1]++;
+  if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"] && currentRoom[playerPos[0] - 1][playerPos[1]] != _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[0]--;
+  if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"] && currentRoom[playerPos[0] + 1][playerPos[1]] != _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[0]++;
+  if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"] && currentRoom[playerPos[0]][playerPos[1] - 1] != _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[1]--;
+  if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"] && currentRoom[playerPos[0]][playerPos[1] + 1] != _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["wallTile"]) playerPos[1]++;
   insertPlayer();
   Object(_app_js__WEBPACK_IMPORTED_MODULE_2__["draw"])();
 }
 function moveEntity(entityId, currentPosX, currentPosY, direction) {} // findEntity()
-// functional idea or just the function to run to play
-
-function playLevel(level, entryDirection) {} // while inside boundaries
-// run the functions to play the level
-// use entrydirection to place the player at the right entrance
-// somehow this has to be figured out based on the previous level's available exits
 
 /**
  * Some future thoughts:

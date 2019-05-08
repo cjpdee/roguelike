@@ -1,7 +1,10 @@
 import {
+	whatIsTile,
+	isTileWalkAble,
 	resetTile,
-	currentLevel
-} from "../world/generateLevel";
+	currentRoom,
+	isTileWalkable
+} from "../world/generateRoom";
 import * as c from "../util/constants";
 import {
 	draw
@@ -14,12 +17,22 @@ export default class Entity {
 		this.sprite = '😍';
 		this.posX = 1;
 		this.posY = 1;
+		this.viewDistance = 10;
 	}
 
-	insertHere(posX, posY) {
-		currentLevel[posX][posY] = this.sprite;
-		this.posX = posX;
-		this.posY = posY;
+	// Return things
+	adjTile(direction) {
+		if (direction == c.NORTH) return currentRoom[this.posX - 1][this.posY];
+		if (direction == c.SOUTH) return currentRoom[this.posX + 1][this.posY];
+		if (direction == c.WEST) return currentRoom[this.posX][this.posY - 1];
+		if (direction == c.EAST) return currentRoom[this.posX][this.posY + 1];
+	}
+
+	// Do things
+	insertHere(x, y) {
+		currentRoom[x][y] = this;
+		this.posX = x;
+		this.posY = y;
 	}
 
 	reInsert() {
@@ -33,10 +46,10 @@ export default class Entity {
 
 	move(direction) {
 		resetTile(this.posX, this.posY);
-		if (direction == c.NORTH && currentLevel[this.posX - 1][this.posY] != c.wallTile) this.posX--;
-		if (direction == c.SOUTH && currentLevel[this.posX + 1][this.posY] != c.wallTile) this.posX++;
-		if (direction == c.WEST && currentLevel[this.posX][this.posY - 1] != c.wallTile) this.posY--;
-		if (direction == c.EAST && currentLevel[this.posX][this.posY + 1] != c.wallTile) this.posY++;
+		if (direction == c.NORTH && isTileWalkable(this.adjTile(c.NORTH))) this.posX--;
+		if (direction == c.SOUTH && isTileWalkable(this.adjTile(c.SOUTH))) this.posX++;
+		if (direction == c.WEST && isTileWalkable(this.adjTile(c.WEST))) this.posY--;
+		if (direction == c.EAST && isTileWalkable(this.adjTile(c.EAST))) this.posY++;
 		this.reInsert();
 		draw();
 	}
@@ -53,14 +66,10 @@ export default class Entity {
 
 export function movePlayer(direction) {
 	resetTile(playerPos[0], playerPos[1]);
-	if (direction == c.NORTH && currentLevel[playerPos[0] - 1][playerPos[1]] != c.wallTile) playerPos[0]--;
-	if (direction == c.SOUTH && currentLevel[playerPos[0] + 1][playerPos[1]] != c.wallTile) playerPos[0]++;
-	if (direction == c.WEST && currentLevel[playerPos[0]][playerPos[1] - 1] != c.wallTile) playerPos[1]--;
-	if (direction == c.EAST && currentLevel[playerPos[0]][playerPos[1] + 1] != c.wallTile) playerPos[1]++;
+	if (direction == c.NORTH && currentRoom[playerPos[0] - 1][playerPos[1]] != c.wallTile) playerPos[0]--;
+	if (direction == c.SOUTH && currentRoom[playerPos[0] + 1][playerPos[1]] != c.wallTile) playerPos[0]++;
+	if (direction == c.WEST && currentRoom[playerPos[0]][playerPos[1] - 1] != c.wallTile) playerPos[1]--;
+	if (direction == c.EAST && currentRoom[playerPos[0]][playerPos[1] + 1] != c.wallTile) playerPos[1]++;
 	insertPlayer();
 	draw();
-}
-
-export function moveEntity(entityId, currentPosX, currentPosY, direction) {
-	// findEntity()
 }
