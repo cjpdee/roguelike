@@ -6,15 +6,20 @@ import {
 	draw
 } from '../app.js';
 
-const DEFAULT_MAX_ROOM_SIZE = 8;
+const DEFAULT_MAX_ROOM_SIZE = 10;
 const DEFAULT_MIN_ROOM_SIZE = 5;
 const DEFAULT_EXIT_SIZE = 2;
-const WALL_TILES = ['🌳'];
-const PATH_TILES = ['󠀠󠀠󠀠󠀠🌱'];
+const WALL_TILES = [{
+	sprite: '🌳',
+	walkable: false
+}]; // Be careful of invisible characters
+const PATH_TILES = [{
+	sprite: '🌱',
+	walkable: true
+}];
 
-var playerPos = [1, 1];
-
-export var currentRoom = insertExit(insertExit(insertExit(insertExit(generateRandomRoom(), c.SOUTH), c.WEST), c.EAST), c.NORTH);
+export var currentRoom = insertExit(insertExit(insertExit(insertExit(generateRandomRoom(), c.SOUTH), c.NORTH), c.EAST), c.WEST);
+// export var currentRoom = insertExit(generateRandomRoom(), c.WEST);
 export var createRoom = () => insertExit(insertExit(insertExit(insertExit(generateRandomRoom(), c.SOUTH), c.WEST), c.EAST), c.NORTH);
 /**
  * ROOM GENERATION
@@ -31,13 +36,13 @@ function roomShell(w, h) {
 	for (let j = 0; j < h; j++) {
 		if (j == 0 || j == h - 1) {
 			// Create a row of only walls
-			shell.push(Array(w).fill(c.wallTile));
+			shell.push(Array(w).fill(c.DEFAULT_WALL_TILE));
 		} else {
 			// Create a row with walls on either side
 			for (let i = 0; i < w; i++) {
 				if (i == 0 || i == w - 1) {
-					row.push(c.wallTile);
-				} else row.push(c.pathTile);
+					row.push(c.DEFAULT_WALL_TILE);
+				} else row.push(c.DEFAULT_PATH_TILE);
 			}
 			shell.push(row);
 			row = [];
@@ -46,45 +51,65 @@ function roomShell(w, h) {
 	return shell;
 }
 
-function insertExitXAxis(room, rowIndex) {
-	var borderRange = room[rowIndex].length - 1;
-	var where = randomInt(1, borderRange - DEFAULT_EXIT_SIZE);
+function insertExitXAxis(room, side) {
+	var rowIndex;
+	side == c.NORTH ? rowIndex = 0 : rowIndex = room.length - 1;
 
-	room[rowIndex].splice(where, DEFAULT_EXIT_SIZE, c.pathTile, c.pathTile);
+	var borderRangeX = room[rowIndex].length - 1;
+	var whereX = randomInt(1, borderRangeX - DEFAULT_EXIT_SIZE);
+
+	room[rowIndex].splice(whereX, DEFAULT_EXIT_SIZE, c.DEFAULT_PATH_TILE, c.DEFAULT_PATH_TILE);
 	return room;
 }
 
-function insertExitYAxis(room, colIndex) {
-	var borderRange = room.length - 1;
-	var where = randomInt(1, borderRange - DEFAULT_EXIT_SIZE);
+function insertExitYAxis(room, side) {
+	var colIndex;
+	side == c.WEST ? colIndex = 0 : colIndex = room[0].length - 1;
+
+	var borderRangeY = room.length - 1;
+	var whereY = randomInt(1, borderRangeY - DEFAULT_EXIT_SIZE);
+	const roomCopy = room.slice();
 
 	function createRowWithExit(exitIndex) {
 		var row = [];
-		let w = room[0].length;
-		for (let i = 0; i < w; i++) {
+		var roomWidth = room[0].length;
+		for (let i = 0; i < roomWidth; i++) {
+
+			var oppositeSideIndex;
+			if (exitIndex == 0) {
+				oppositeSideIndex = roomWidth - 1;
+			} else oppositeSideIndex = 0;
+
 			if (i == exitIndex) {
-				row.push(c.pathTile);
-			} else if (i != exitIndex && i == 0 || i == w - 1) {
-				row.push(c.wallTile);
-			} else row.push(c.pathTile);
+				row.push(c.DEFAULT_PATH_TILE); // pathtile
+			} else if (i != exitIndex && i == 0 || i == oppositeSideIndex) {
+				row.push(c.DEFAULT_WALL_TILE);
+			} else row.push(c.DEFAULT_PATH_TILE); // was pathtile
 		}
+
+		// FIXME: walls/paths are being overwritten by previous methods
+		if (room[whereY][oppositeSideIndex] == c.DEFAULT_PATH_TILE) {
+			row[oppositeSideIndex] = c.DEFAULT_PATH_TILE;
+		}
+
+
+		// console.log(side, row);
 		return row;
 	}
+	roomCopy.splice(whereY, DEFAULT_EXIT_SIZE, createRowWithExit(colIndex), createRowWithExit(colIndex));
 
-	room.splice(where, DEFAULT_EXIT_SIZE, createRowWithExit(colIndex), createRowWithExit(colIndex));
-	return room;
+	return roomCopy;
 }
-
 
 function insertExit(room, direction) {
 	if (direction == c.NORTH) {
-		return insertExitXAxis(room, 0);
+		return insertExitXAxis(room, c.NORTH);
 	} else if (direction == c.SOUTH) {
-		return insertExitXAxis(room, room.length - 1);
+		return insertExitXAxis(room, c.SOUTH);
 	} else if (direction == c.EAST) {
-		return insertExitYAxis(room, room[0].length - 1);
+		return insertExitYAxis(room, c.EAST);
 	} else if (direction == c.WEST) {
-		return insertExitYAxis(room, 0);
+		return insertExitYAxis(room, c.WEST);
 	}
 }
 
@@ -92,16 +117,6 @@ function generateRandomRoom() {
 	var shell = roomShell(randomRoomSize(), randomRoomSize());
 	return shell;
 }
-
-function buildRoom() {
-	/*
-		Parameters:
-		an array of directions where there can be exits
-		an array of monsters
-		an 
-	*/
-}
-
 
 /**
  * INSERTING / MOVING PLAYER
@@ -113,7 +128,7 @@ function insertPlayerFirstAvailableSpace() {
 	currentRoom.find((row, index1) => {
 		if (
 			row.find((space, index2) => {
-				if (space === c.pathTile && pos.length < 2) {
+				if (space === c.DEFAULT_PATH_TILE && pos.length < 2) {
 					pos.push(index1);
 					pos.push(index2);
 					return;
@@ -125,46 +140,16 @@ function insertPlayerFirstAvailableSpace() {
 	currentRoom[pos[0]][pos[1]] = c.player;
 }
 
-export function insertPlayerToSpace(x, y) {
-	currentRoom[x][y] = c.player;
-}
-
-function insertPlayer() {
-	insertPlayerToSpace(playerPos[0], playerPos[1]);
-}
-
-export function resetTile(x, y) {
-	currentRoom[x][y] = c.pathTile;
-}
-
+// move to new file
 export function whatIsTile(x, y) {
 	return currentRoom[x][y];
 }
 
+// move to new file
 export function isTileWalkable(tile) {
 	return PATH_TILES.includes(tile) ? true : false
 }
 
-function getPlayerPos() {
-	currentRoom.find((row) => {
-		return row.find((space) => space == c.player);
-	});
-}
-
-
-export function movePlayer(direction) {
-	resetTile(playerPos[0], playerPos[1]);
-	if (direction == c.NORTH && currentRoom[playerPos[0] - 1][playerPos[1]] != c.wallTile) playerPos[0]--;
-	if (direction == c.SOUTH && currentRoom[playerPos[0] + 1][playerPos[1]] != c.wallTile) playerPos[0]++;
-	if (direction == c.WEST && currentRoom[playerPos[0]][playerPos[1] - 1] != c.wallTile) playerPos[1]--;
-	if (direction == c.EAST && currentRoom[playerPos[0]][playerPos[1] + 1] != c.wallTile) playerPos[1]++;
-	insertPlayer();
-	draw();
-}
-
-export function moveEntity(entityId, currentPosX, currentPosY, direction) {
-	// findEntity()
-}
 /**
  * Some future thoughts:
  * Create a textbox that narrates what is happening
