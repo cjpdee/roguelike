@@ -94,7 +94,6 @@ function isCellEmpty(level, x, y) {
 }
 
 export function tileIsWalkable(level, x, y) {
-	// console.log(level[y][x]);
 	if (level.length > y && level[0].length > x) {
 		if (level[y][x] != null) {
 			return level[y][x].walkable;

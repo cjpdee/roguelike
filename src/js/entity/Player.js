@@ -10,7 +10,7 @@ export default class Player extends Entity {
 	movePlayer(direction) {
 		this.move(direction);
 		Game.tick();
-		// console.log(Game.time);
+		console.log(Game.time);
 	}
 
 }

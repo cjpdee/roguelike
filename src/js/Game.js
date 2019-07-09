@@ -11,7 +11,7 @@ var Game = {
 	enemies: [],
 	time: 0,
 
-	tick: function() {
+	tick: function () {
 		console.log(this.enemies)
 		this.enemies.forEach(entity => {
 			entity.move(c.NORTH)
@@ -20,8 +20,8 @@ var Game = {
 	},
 
 	worldMethods: {
-		resetTile: function(x, y) {
-			testingLevel[x][y] = c.pathTile;
+		resetTile: function (x, y) {
+			testingLevel[x][y] = c.DEFAULT_PATH_TILE;
 		}
 	}
 }

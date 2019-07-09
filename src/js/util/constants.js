@@ -8,6 +8,7 @@ export const EAST = 'e';
 export const SOUTH = 's';
 export const WEST = 'w';
 
+export const DEFAULT_EXIT_SIZE = 2;
 
 export const DEFAULT_PATH_TILE = {
 	sprite: '🌱',

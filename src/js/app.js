@@ -108,6 +108,6 @@ function fillShortestPath(level, startX, startY, endX, endY, maxDistance = 1000)
 initEvtListeners();
 var player = new Player('🥶');
 var enemy = new Enemy('👾');
-player.insertHere(10, 10);
+player.insertHere(15, 15);
 fillShortestPath(testingLevel, 10, 10, 10, 20)
 draw()

@@ -50,11 +50,12 @@ export default class Entity {
 
 	move(direction) {
 		// console.log(tileIsWalkable(this.adjTile(c.EAST)));
+		console.log(this.adjTile(direction))
 		Game.worldMethods.resetTile(this.posX, this.posY);
-		if (direction == c.NORTH && tileIsWalkable(this.adjTile(c.NORTH))) this.posX--;
-		if (direction == c.SOUTH && tileIsWalkable(this.adjTile(c.SOUTH))) this.posX++;
-		if (direction == c.WEST && tileIsWalkable(this.adjTile(c.WEST))) this.posY--;
-		if (direction == c.EAST && tileIsWalkable(this.adjTile(c.EAST))) this.posY++;
+		if (direction == c.NORTH && this.adjTile(direction).walkable) this.posX--;
+		if (direction == c.SOUTH && this.adjTile(direction).walkable) this.posX++;
+		if (direction == c.WEST && this.adjTile(direction).walkable) this.posY--;
+		if (direction == c.EAST && this.adjTile(direction).walkable) this.posY++;
 		this.reInsert();
 		draw();
 	}

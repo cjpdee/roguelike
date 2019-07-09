@@ -115,7 +115,7 @@ var Game = {
   },
   worldMethods: {
     resetTile: function resetTile(x, y) {
-      _world_generateLevel__WEBPACK_IMPORTED_MODULE_1__["testingLevel"][x][y] = _util_constants__WEBPACK_IMPORTED_MODULE_2__["pathTile"];
+      _world_generateLevel__WEBPACK_IMPORTED_MODULE_1__["testingLevel"][x][y] = _util_constants__WEBPACK_IMPORTED_MODULE_2__["DEFAULT_PATH_TILE"];
     }
   }
 };
@@ -216,7 +216,7 @@ function fillShortestPath(level, startX, startY, endX, endY) {
 initEvtListeners();
 var player = new _entity_Player__WEBPACK_IMPORTED_MODULE_3__["default"]('🥶');
 var enemy = new _entity_Enemy__WEBPACK_IMPORTED_MODULE_4__["default"]('👾');
-player.insertHere(10, 10);
+player.insertHere(15, 15);
 fillShortestPath(_world_generateLevel__WEBPACK_IMPORTED_MODULE_2__["testingLevel"], 10, 10, 10, 20);
 draw();
 
@@ -353,11 +353,12 @@ function () {
     key: "move",
     value: function move(direction) {
       // console.log(tileIsWalkable(this.adjTile(c.EAST)));
+      console.log(this.adjTile(direction));
       _Game__WEBPACK_IMPORTED_MODULE_0__["default"].worldMethods.resetTile(this.posX, this.posY);
-      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_3__["NORTH"] && Object(_world_generateLevel__WEBPACK_IMPORTED_MODULE_2__["tileIsWalkable"])(this.adjTile(_util_constants__WEBPACK_IMPORTED_MODULE_3__["NORTH"]))) this.posX--;
-      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_3__["SOUTH"] && Object(_world_generateLevel__WEBPACK_IMPORTED_MODULE_2__["tileIsWalkable"])(this.adjTile(_util_constants__WEBPACK_IMPORTED_MODULE_3__["SOUTH"]))) this.posX++;
-      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_3__["WEST"] && Object(_world_generateLevel__WEBPACK_IMPORTED_MODULE_2__["tileIsWalkable"])(this.adjTile(_util_constants__WEBPACK_IMPORTED_MODULE_3__["WEST"]))) this.posY--;
-      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_3__["EAST"] && Object(_world_generateLevel__WEBPACK_IMPORTED_MODULE_2__["tileIsWalkable"])(this.adjTile(_util_constants__WEBPACK_IMPORTED_MODULE_3__["EAST"]))) this.posY++;
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_3__["NORTH"] && this.adjTile(direction).walkable) this.posX--;
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_3__["SOUTH"] && this.adjTile(direction).walkable) this.posX++;
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_3__["WEST"] && this.adjTile(direction).walkable) this.posY--;
+      if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_3__["EAST"] && this.adjTile(direction).walkable) this.posY++;
       this.reInsert();
       Object(_app_js__WEBPACK_IMPORTED_MODULE_4__["draw"])();
     }
@@ -437,7 +438,8 @@ function (_Entity) {
     key: "movePlayer",
     value: function movePlayer(direction) {
       this.move(direction);
-      _Game__WEBPACK_IMPORTED_MODULE_1__["default"].tick(); // console.log(Game.time);
+      _Game__WEBPACK_IMPORTED_MODULE_1__["default"].tick();
+      console.log(_Game__WEBPACK_IMPORTED_MODULE_1__["default"].time);
     }
   }]);
 
@@ -452,7 +454,7 @@ function (_Entity) {
 /*!**********************************!*\
   !*** ./src/js/util/constants.js ***!
   \**********************************/
-/*! exports provided: player, wallTile, pathTile, NORTH, EAST, SOUTH, WEST, DEFAULT_PATH_TILE, DEFAULT_WALL_TILE */
+/*! exports provided: player, wallTile, pathTile, NORTH, EAST, SOUTH, WEST, DEFAULT_EXIT_SIZE, DEFAULT_PATH_TILE, DEFAULT_WALL_TILE */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -464,6 +466,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EAST", function() { return EAST; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SOUTH", function() { return SOUTH; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "WEST", function() { return WEST; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DEFAULT_EXIT_SIZE", function() { return DEFAULT_EXIT_SIZE; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DEFAULT_PATH_TILE", function() { return DEFAULT_PATH_TILE; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DEFAULT_WALL_TILE", function() { return DEFAULT_WALL_TILE; });
 var player = '🌚';
@@ -473,6 +476,7 @@ var NORTH = 'n';
 var EAST = 'e';
 var SOUTH = 's';
 var WEST = 'w';
+var DEFAULT_EXIT_SIZE = 2;
 var DEFAULT_PATH_TILE = {
   sprite: '🌱',
   walkable: true,
@@ -611,7 +615,6 @@ function isCellEmpty(level, x, y) {
 }
 
 function tileIsWalkable(level, x, y) {
-  // console.log(level[y][x]);
   if (level.length > y && level[0].length > x) {
     if (level[y][x] != null) {
       return level[y][x].walkable;
@@ -657,45 +660,47 @@ var testingLevel = placeRoomInRemainingSpace(placeRoomInRemainingSpace(placeFirs
 /*!**************************************!*\
   !*** ./src/js/world/generateRoom.js ***!
   \**************************************/
-/*! exports provided: currentRoom, createRoom, whatIsTile, isTileWalkable */
+/*! exports provided: currentRoom, createRoom, generateRandomRoom, whatIsTile, isTileWalkable */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "currentRoom", function() { return currentRoom; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createRoom", function() { return createRoom; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "generateRandomRoom", function() { return generateRandomRoom; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "whatIsTile", function() { return whatIsTile; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isTileWalkable", function() { return isTileWalkable; });
-/* harmony import */ var _util_helper_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util/helper.js */ "./src/js/util/helper.js");
-/* harmony import */ var _util_constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util/constants.js */ "./src/js/util/constants.js");
-/* harmony import */ var _app_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../app.js */ "./src/js/app.js");
+/* harmony import */ var _util_helper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util/helper */ "./src/js/util/helper.js");
+/* harmony import */ var _util_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util/constants */ "./src/js/util/constants.js");
+/* harmony import */ var _room_insertExits__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./room/insertExits */ "./src/js/world/room/insertExits.js");
+/* harmony import */ var _app_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../app.js */ "./src/js/app.js");
+
 
 
 
 var DEFAULT_MAX_ROOM_SIZE = 10;
 var DEFAULT_MIN_ROOM_SIZE = 5;
-var DEFAULT_EXIT_SIZE = 2;
-var WALL_TILES = [{
-  sprite: '🌳',
-  walkable: false
-}]; // Be careful of invisible characters
+var DEFAULT_EXIT_SIZE = 2; // const WALL_TILES = [{
+// 	sprite: '🌳',
+// 	walkable: false
+// }]; // Be careful of invisible characters
+// const PATH_TILES = [{
+// 	sprite: '🌱',
+// 	walkable: true
+// }];
 
-var PATH_TILES = [{
-  sprite: '🌱',
-  walkable: true
-}];
-var currentRoom = insertExit(insertExit(insertExit(insertExit(generateRandomRoom(), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"]); // export var currentRoom = insertExit(generateRandomRoom(), c.WEST);
-
+var currentRoom = Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(generateRandomShell(), _util_constants__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]), _util_constants__WEBPACK_IMPORTED_MODULE_1__["NORTH"]), _util_constants__WEBPACK_IMPORTED_MODULE_1__["EAST"]), _util_constants__WEBPACK_IMPORTED_MODULE_1__["WEST"]);
 var createRoom = function createRoom() {
-  return insertExit(insertExit(insertExit(insertExit(generateRandomRoom(), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"]), _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"]);
+  return Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(generateRandomShell(), _util_constants__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]), _util_constants__WEBPACK_IMPORTED_MODULE_1__["WEST"]), _util_constants__WEBPACK_IMPORTED_MODULE_1__["EAST"]), _util_constants__WEBPACK_IMPORTED_MODULE_1__["NORTH"]);
 };
 /**
  * ROOM GENERATION
  */
 
 function randomRoomSize() {
-  return Object(_util_helper_js__WEBPACK_IMPORTED_MODULE_0__["randomInt"])(DEFAULT_MIN_ROOM_SIZE, DEFAULT_MAX_ROOM_SIZE);
-}
+  return Object(_util_helper__WEBPACK_IMPORTED_MODULE_0__["randomInt"])(DEFAULT_MIN_ROOM_SIZE, DEFAULT_MAX_ROOM_SIZE);
+} // Create an empty matrix filled with path tiles & a wall tile border
+
 
 function roomShell(w, h) {
   var shell = [];
@@ -703,14 +708,14 @@ function roomShell(w, h) {
 
   for (var j = 0; j < h; j++) {
     if (j == 0 || j == h - 1) {
-      // Create a row of only walls
-      shell.push(Array(w).fill(_util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_WALL_TILE"]));
+      // Create a row of only walls on top / bottom side
+      shell.push(Array(w).fill(_util_constants__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_WALL_TILE"]));
     } else {
-      // Create a row with walls on either side
+      // Create a row with walls on either side (to fill the space)
       for (var i = 0; i < w; i++) {
         if (i == 0 || i == w - 1) {
-          row.push(_util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_WALL_TILE"]);
-        } else row.push(_util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_PATH_TILE"]);
+          row.push(_util_constants__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_WALL_TILE"]);
+        } else row.push(_util_constants__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_PATH_TILE"]);
       }
 
       shell.push(row);
@@ -721,89 +726,18 @@ function roomShell(w, h) {
   return shell;
 }
 
-function insertExitXAxis(room, side) {
-  var rowIndex;
-  side == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"] ? rowIndex = 0 : rowIndex = room.length - 1;
-  var borderRangeX = room[rowIndex].length - 1;
-  var whereX = Object(_util_helper_js__WEBPACK_IMPORTED_MODULE_0__["randomInt"])(1, borderRangeX - DEFAULT_EXIT_SIZE);
-  room[rowIndex].splice(whereX, DEFAULT_EXIT_SIZE, _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_PATH_TILE"], _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_PATH_TILE"]);
-  return room;
-}
-
-function insertExitYAxis(room, side) {
-  var colIndex;
-  side == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"] ? colIndex = 0 : colIndex = room[0].length - 1;
-  var borderRangeY = room.length - 1;
-  var whereY = Object(_util_helper_js__WEBPACK_IMPORTED_MODULE_0__["randomInt"])(1, borderRangeY - DEFAULT_EXIT_SIZE);
-  var roomCopy = room.slice();
-
-  function createRowWithExit(exitIndex) {
-    var row = [];
-    var roomWidth = room[0].length;
-
-    for (var i = 0; i < roomWidth; i++) {
-      var oppositeSideIndex;
-
-      if (exitIndex == 0) {
-        oppositeSideIndex = roomWidth - 1;
-      } else oppositeSideIndex = 0;
-
-      if (i == exitIndex) {
-        row.push(_util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_PATH_TILE"]); // pathtile
-      } else if (i != exitIndex && i == 0 || i == oppositeSideIndex) {
-        row.push(_util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_WALL_TILE"]);
-      } else row.push(_util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_PATH_TILE"]); // was pathtile
-
-    } // FIXME: walls/paths are being overwritten by previous methods
-
-
-    if (room[whereY][oppositeSideIndex] == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_PATH_TILE"]) {
-      row[oppositeSideIndex] = _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_PATH_TILE"];
-    } // console.log(side, row);
-
-
-    return row;
-  }
-
-  roomCopy.splice(whereY, DEFAULT_EXIT_SIZE, createRowWithExit(colIndex), createRowWithExit(colIndex));
-  return roomCopy;
-}
-
-function insertExit(room, direction) {
-  if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"]) {
-    return insertExitXAxis(room, _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["NORTH"]);
-  } else if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]) {
-    return insertExitXAxis(room, _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]);
-  } else if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"]) {
-    return insertExitYAxis(room, _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["EAST"]);
-  } else if (direction == _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"]) {
-    return insertExitYAxis(room, _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["WEST"]);
-  }
+function generateRandomShell() {
+  var shell = roomShell(randomRoomSize(), randomRoomSize());
+  return shell;
 }
 
 function generateRandomRoom() {
-  var shell = roomShell(randomRoomSize(), randomRoomSize());
-  return shell;
+  return Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(Object(_room_insertExits__WEBPACK_IMPORTED_MODULE_2__["insertExit"])(generateRandomShell(), _util_constants__WEBPACK_IMPORTED_MODULE_1__["SOUTH"]), _util_constants__WEBPACK_IMPORTED_MODULE_1__["NORTH"]), _util_constants__WEBPACK_IMPORTED_MODULE_1__["EAST"]), _util_constants__WEBPACK_IMPORTED_MODULE_1__["WEST"]);
 }
 /**
  * INSERTING / MOVING PLAYER
  */
-
-
-function insertPlayerFirstAvailableSpace() {
-  var pos = [];
-  currentRoom.find(function (row, index1) {
-    if (row.find(function (space, index2) {
-      if (space === _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_PATH_TILE"] && pos.length < 2) {
-        pos.push(index1);
-        pos.push(index2);
-        return;
-      }
-    })) return;
-  });
-  currentRoom[pos[0]][pos[1]] = _util_constants_js__WEBPACK_IMPORTED_MODULE_1__["player"];
-} // move to new file
-
+// move to new file
 
 function whatIsTile(x, y) {
   return currentRoom[x][y];
@@ -819,6 +753,84 @@ function isTileWalkable(tile) {
 
 /***/ }),
 
+/***/ "./src/js/world/room/insertExits.js":
+/*!******************************************!*\
+  !*** ./src/js/world/room/insertExits.js ***!
+  \******************************************/
+/*! exports provided: insertExit */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "insertExit", function() { return insertExit; });
+/* harmony import */ var _util_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util/constants */ "./src/js/util/constants.js");
+/* harmony import */ var _util_helper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../util/helper */ "./src/js/util/helper.js");
+
+ // Finds an acceptable 2x1 space and inserts it horizontally
+
+function insertExitXAxis(room, side) {
+  var rowIndex;
+  side == _util_constants__WEBPACK_IMPORTED_MODULE_0__["NORTH"] ? rowIndex = 0 : rowIndex = room.length - 1;
+  var borderRangeX = room[rowIndex].length - 1;
+  var whereX = Object(_util_helper__WEBPACK_IMPORTED_MODULE_1__["randomInt"])(1, borderRangeX - _util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_EXIT_SIZE"]);
+  room[rowIndex].splice(whereX, _util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_EXIT_SIZE"], _util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_PATH_TILE"], _util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_PATH_TILE"]);
+  return room;
+} // Finds an acceptable 2x1 space and inserts it vertically
+
+
+function insertExitYAxis(room, side) {
+  var colIndex;
+  side == _util_constants__WEBPACK_IMPORTED_MODULE_0__["WEST"] ? colIndex = 0 : colIndex = room[0].length - 1;
+  var borderRangeY = room.length - 1;
+  var whereY = Object(_util_helper__WEBPACK_IMPORTED_MODULE_1__["randomInt"])(1, borderRangeY - _util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_EXIT_SIZE"]);
+  var roomCopy = room.slice();
+
+  function createRowWithExit(exitIndex) {
+    var row = [];
+    var roomWidth = room[0].length;
+
+    for (var i = 0; i < roomWidth; i++) {
+      var oppositeSideIndex;
+
+      if (exitIndex == 0) {
+        oppositeSideIndex = roomWidth - 1;
+      } else oppositeSideIndex = 0;
+
+      if (i == exitIndex) {
+        row.push(_util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_PATH_TILE"]); // pathtile
+      } else if (i != exitIndex && i == 0 || i == oppositeSideIndex) {
+        row.push(_util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_WALL_TILE"]);
+      } else row.push(_util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_PATH_TILE"]); // was pathtile
+
+    } // FIXME: walls/paths are being overwritten by previous methods
+
+
+    if (room[whereY][oppositeSideIndex] == _util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_PATH_TILE"]) {
+      row[oppositeSideIndex] = _util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_PATH_TILE"];
+    } // console.log(side, row);
+
+
+    return row;
+  }
+
+  roomCopy.splice(whereY, _util_constants__WEBPACK_IMPORTED_MODULE_0__["DEFAULT_EXIT_SIZE"], createRowWithExit(colIndex), createRowWithExit(colIndex));
+  return roomCopy;
+}
+
+function insertExit(room, direction) {
+  if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_0__["NORTH"]) {
+    return insertExitXAxis(room, _util_constants__WEBPACK_IMPORTED_MODULE_0__["NORTH"]);
+  } else if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_0__["SOUTH"]) {
+    return insertExitXAxis(room, _util_constants__WEBPACK_IMPORTED_MODULE_0__["SOUTH"]);
+  } else if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_0__["EAST"]) {
+    return insertExitYAxis(room, _util_constants__WEBPACK_IMPORTED_MODULE_0__["EAST"]);
+  } else if (direction == _util_constants__WEBPACK_IMPORTED_MODULE_0__["WEST"]) {
+    return insertExitYAxis(room, _util_constants__WEBPACK_IMPORTED_MODULE_0__["WEST"]);
+  }
+}
+
+/***/ }),
+
 /***/ 0:
 /*!*****************************!*\
   !*** multi ./src/js/app.js ***!
@@ -826,7 +838,7 @@ function isTileWalkable(tile) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! /Users/Charlie/Code/roguelike/src/js/app.js */"./src/js/app.js");
+module.exports = __webpack_require__(/*! /home/charlie/Code/roguelike/src/js/app.js */"./src/js/app.js");
 
 
 /***/ })
