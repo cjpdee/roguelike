@@ -1,6 +1,6 @@
-export const player = '🌚';
-export const wallTile = '🌳';
-export const pathTile = '🌱';
+// export const player = '🌚';
+// export const wallTile = '🌳';
+// export const pathTile = '🌱';
 
 
 export const NORTH = 'n';
@@ -13,11 +13,14 @@ export const DEFAULT_EXIT_SIZE = 2;
 export const DEFAULT_PATH_TILE = {
 	sprite: '🌱',
 	walkable: true,
+	breakable: false,
 	distance: 0
 }
 
 export const DEFAULT_WALL_TILE = {
 	sprite: '🌳',
 	walkable: false,
+	breakable: true,
+	damage: 100,
 	distance: 0
 }

@@ -6,8 +6,8 @@ export default class Enemy extends Entity {
 		super(health, attack);
 		this.name = name;
 		this.sprite = sprite;
-		console.log(Game.enemies.push(this))
-		console.log(Game.enemies)
+		// console.log(Game.enemies.push(this))
+		// console.log(Game.enemies)
 
 		this.insertHere(20, 20);
 	}

@@ -6,9 +6,17 @@ import {
 
 const LEVEL_SIZE = 32;
 
-function createLevel() {
-	var numRooms = 0;
-}
+/**
+ * Overview of level generation
+ * 1. Create Shell
+ * 2. Try to place rooms x number of times
+ * 
+ * If room doesn't fit it will not be added and just keep trying.
+ * 
+ * In future we should be able to ask for a number of rooms and it will not count down until the room has been verified as created.
+ * However this needs a failsafe - maximum number of rooms because this may cause infinite loops where creating new rooms is impossible.
+ * So we must keep the numAttempts variable in case the loop exceeds it's value
+ */
 
 
 export function createLevelShell() {
@@ -24,11 +32,7 @@ export function createLevelShell() {
 function placeFirstRoom(level) {
 	const x = randomInt(0, LEVEL_SIZE);
 	const y = randomInt(0, LEVEL_SIZE);
-
-	// console.log('new room location:', x, y);
-
 	let room = r.createRoom();
-	// room = r.currentRoom; // TODO: remove later
 
 	return roomFitsInLevelBoundaries(level, room, x, y) ? spliceRoomIntoLevel(level, room, x, y) : placeFirstRoom(level);
 }
@@ -37,33 +41,13 @@ function placeFirstRoom(level) {
 function roomFitsInLevelBoundaries(level, room, x, y) {
 	// X axis fits?
 	if (x + room[0].length > LEVEL_SIZE - 1) {
-		// console.log('Room could not be placed - X');
-		console.log(x, room[0].length)
 		return false
 	}
 	// Y axis fits?
 	if (y + room.length > LEVEL_SIZE - 1) {
-		// console.log('Room could not be placed - Y');
-		console.log(y, room.length)
 		return false
 	}
 	return true
-}
-
-function placeRoomInRemainingSpace(level, numRooms) {
-	numRooms = 80;
-
-	for (let i = 0; i < numRooms; i++) {
-		var newRoom = r.createRoom();
-		var newRoomX = randomInt(0, LEVEL_SIZE);
-		var newRoomY = randomInt(0, LEVEL_SIZE);
-		// console.log(newRoomY, newRoomX, newRoom);
-		// console.log('height: ' + newRoom.length)
-		// console.log('width: ' + newRoom[0].length)
-		checkAreaIsClear(level, newRoomX, newRoomY, newRoom[0].length, newRoom.length) && spliceRoomIntoLevel(level, newRoom, newRoomX, newRoomY);
-	}
-
-	return level;
 }
 
 function checkAreaIsClear(level, x, y, width, height) {
@@ -88,6 +72,20 @@ function checkAreaIsClear(level, x, y, width, height) {
 	}
 }
 
+function placeRoomInRemainingSpace(level, numAttempts) {
+	numAttempts = 80;
+
+	// try to place room in random locations numAttempts times
+	for (let i = 0; i < numAttempts; i++) {
+		var newRoom = r.createRoom();
+		var newRoomX = randomInt(0, LEVEL_SIZE);
+		var newRoomY = randomInt(0, LEVEL_SIZE);
+
+		checkAreaIsClear(level, newRoomX, newRoomY, newRoom[0].length, newRoom.length) && spliceRoomIntoLevel(level, newRoom, newRoomX, newRoomY);
+	}
+
+	return level;
+}
 
 function isCellEmpty(level, x, y) {
 	return level[y][x] === null

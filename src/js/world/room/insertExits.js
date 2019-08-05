@@ -1,5 +1,6 @@
 import * as c from '../../util/constants';
 import { randomInt } from "../../util/helper";
+import { WALL_TILE, PATH_TILE } from "../Tile";
 
 // Finds an acceptable 2x1 space and inserts it horizontally
 function insertExitXAxis(room, side) {
@@ -9,7 +10,7 @@ function insertExitXAxis(room, side) {
     var borderRangeX = room[rowIndex].length - 1;
     var whereX = randomInt(1, borderRangeX - c.DEFAULT_EXIT_SIZE);
 
-    room[rowIndex].splice(whereX, c.DEFAULT_EXIT_SIZE, c.DEFAULT_PATH_TILE, c.DEFAULT_PATH_TILE);
+    room[rowIndex].splice(whereX, c.DEFAULT_EXIT_SIZE, PATH_TILE(), PATH_TILE());
     return room;
 }
 // Finds an acceptable 2x1 space and inserts it vertically
@@ -32,15 +33,15 @@ function insertExitYAxis(room, side) {
             } else oppositeSideIndex = 0;
 
             if (i == exitIndex) {
-                row.push(c.DEFAULT_PATH_TILE); // pathtile
+                row.push(PATH_TILE()); // pathtile
             } else if (i != exitIndex && i == 0 || i == oppositeSideIndex) {
-                row.push(c.DEFAULT_WALL_TILE);
-            } else row.push(c.DEFAULT_PATH_TILE); // was pathtile
+                row.push(WALL_TILE());
+            } else row.push(PATH_TILE()); // was pathtile
         }
 
         // FIXME: walls/paths are being overwritten by previous methods
-        if (room[whereY][oppositeSideIndex] == c.DEFAULT_PATH_TILE) {
-            row[oppositeSideIndex] = c.DEFAULT_PATH_TILE;
+        if (room[whereY][oppositeSideIndex] == PATH_TILE()) {
+            row[oppositeSideIndex] = PATH_TILE();
         }
 
 

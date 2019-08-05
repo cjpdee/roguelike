@@ -4,18 +4,11 @@ import { insertExit } from './room/insertExits';
 import {
 	draw
 } from '../app.js';
+import { Tile, WALL_TILE, PATH_TILE } from './Tile';
 
 const DEFAULT_MAX_ROOM_SIZE = 10;
 const DEFAULT_MIN_ROOM_SIZE = 5;
 const DEFAULT_EXIT_SIZE = 2;
-// const WALL_TILES = [{
-// 	sprite: '🌳',
-// 	walkable: false
-// }]; // Be careful of invisible characters
-// const PATH_TILES = [{
-// 	sprite: '🌱',
-// 	walkable: true
-// }];
 
 export var currentRoom = insertExit(insertExit(insertExit(insertExit(generateRandomShell(), c.SOUTH), c.NORTH), c.EAST), c.WEST);
 export var createRoom = () => insertExit(insertExit(insertExit(insertExit(generateRandomShell(), c.SOUTH), c.WEST), c.EAST), c.NORTH);
@@ -36,13 +29,17 @@ function roomShell(w, h) {
 	for (let j = 0; j < h; j++) {
 		if (j == 0 || j == h - 1) {
 			// Create a row of only walls on top / bottom side
-			shell.push(Array(w).fill(c.DEFAULT_WALL_TILE));
+			var ar = Array(w).fill(null)
+			ar.forEach(cell => {
+				cell = WALL_TILE();
+			})
+			shell.push(ar);
 		} else {
 			// Create a row with walls on either side (to fill the space)
 			for (let i = 0; i < w; i++) {
 				if (i == 0 || i == w - 1) {
-					row.push(c.DEFAULT_WALL_TILE);
-				} else row.push(c.DEFAULT_PATH_TILE);
+					row.push(WALL_TILE());
+				} else row.push(PATH_TILE());
 			}
 			shell.push(row);
 			row = [];

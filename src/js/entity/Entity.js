@@ -22,9 +22,11 @@ export default class Entity {
 		this.posY = 1;
 		this.viewDistance = 10;
 		this.walkable = false;
+		this.breakable = false;
+		this.digStr = 50;
 	}
 
-	// Return things
+	// Return tile next to this entity in (direction)
 	adjTile(direction) {
 		if (direction == c.NORTH) return testingLevel[this.posX - 1][this.posY];
 		if (direction == c.SOUTH) return testingLevel[this.posX + 1][this.posY];
@@ -43,21 +45,33 @@ export default class Entity {
 		this.insertHere(this.posX, this.posY);
 	}
 
-	/**
-	 * Instead of c.wallTile, it should retrieve what the next tile is and access it's "walkable" property
-	 * Tiles can be objects I guess
-	 */
-
+	// needs refactoring
 	move(direction) {
-		// console.log(tileIsWalkable(this.adjTile(c.EAST)));
-		console.log(this.adjTile(direction))
 		Game.worldMethods.resetTile(this.posX, this.posY);
 		if (direction == c.NORTH && this.adjTile(direction).walkable) this.posX--;
+		// idea for breaking blocks
+		else if (direction == c.NORTH && this.adjTile(direction).breakable) this.dig(this.adjTile(direction));
+
 		if (direction == c.SOUTH && this.adjTile(direction).walkable) this.posX++;
+		else if (direction == c.SOUTH && this.adjTile(direction).breakable) this.dig(this.adjTile(direction));
+
 		if (direction == c.WEST && this.adjTile(direction).walkable) this.posY--;
+		else if (direction == c.WEST && this.adjTile(direction).breakable) this.dig(this.adjTile(direction));
+
 		if (direction == c.EAST && this.adjTile(direction).walkable) this.posY++;
+		else if (direction == c.EAST && this.adjTile(direction).breakable) this.dig(this.adjTile(direction));
 		this.reInsert();
 		draw();
+	}
+
+	dig(tile) {
+		tile.damage -= this.digStr;
+		if (tile.damage <= 0) {
+			console.log('broken', tile)
+			tile.convertToPath();
+		} else {
+			console.log('unbroken', tile)
+		}
 	}
 
 	attack(direction) {

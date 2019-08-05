@@ -3,6 +3,7 @@ import {
 	testingLevel
 } from "./world/generateLevel";
 import * as c from "./util/constants";
+import { PATH_TILE } from "./world/Tile";
 
 
 var Game = {
@@ -21,7 +22,7 @@ var Game = {
 
 	worldMethods: {
 		resetTile: function (x, y) {
-			testingLevel[x][y] = c.DEFAULT_PATH_TILE;
+			testingLevel[x][y] = PATH_TILE();
 		}
 	}
 }
